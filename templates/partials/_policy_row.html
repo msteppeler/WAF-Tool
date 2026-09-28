@@ -1,0 +1,53 @@
+<div class="policy-row {% if policy.state == 'ENABLED' %}enabled{% else %}disabled{% endif %}">
+    <div class="policy-summary" onclick="toggleDetails('policy-{{ policy.name }}')">
+        <span class="status-dot {% if policy.state == 'ENABLED' %}enabled{% else %}disabled{% endif %}"
+              title="{{ policy.state }}"></span>
+        <span class="policy-name">{{ policy.name }}</span>
+        <span class="policy-hits"><span class="col-label">{{ t('policy.hits') }} </span>{{ policy.hits }}</span>
+        <span class="policy-vservers">
+            {% if policy.vservers %}
+                {{ policy.vservers|length }} vServer
+            {% else %}
+                <span class="none">{{ t('policy.not_bound') }}</span>
+            {% endif %}
+        </span>
+    </div>
+
+    <div class="policy-details" id="details-policy-{{ policy.name }}">
+        <div class="detail-row">
+            <span class="k">{{ t('policy.detail_profile') }}</span>
+            {% if policy.profile and policy.profile != '–' %}
+                <a href="#profile-{{ policy.profile }}" class="v profile-link"
+                   onclick="event.preventDefault(); jumpToProfile('{{ policy.profile }}');">{{ policy.profile }}</a>
+            {% else %}
+                <span class="v">{{ policy.profile }}</span>
+            {% endif %}
+        </div>
+        <div class="detail-row">
+            <span class="k">{{ t('policy.detail_hits') }}</span>
+            <span class="v">{{ policy.hits }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="k">{{ t('policy.detail_vserver') }}</span>
+            <span>
+                {% if policy.vservers %}
+                    {% for vs in policy.vservers %}<span class="chip">{{ vs }}</span>{% endfor %}
+                {% else %}
+                    <span style="color:var(--danger); font-size:13px;">{{ t('policy.no_binding') }}</span>
+                {% endif %}
+            </span>
+        </div>
+        {% if policy.comment %}
+            <div class="detail-row">
+                <span class="k">{{ t('policy.detail_comment') }}</span>
+                <span style="font-family:var(--sans); font-size:13px;">{{ policy.comment }}</span>
+            </div>
+        {% endif %}
+        {% if policy.rule %}
+            <div class="detail-row">
+                <span class="k">{{ t('policy.detail_rule') }}</span>
+                <code>{{ policy.rule }}</code>
+            </div>
+        {% endif %}
+    </div>
+</div>

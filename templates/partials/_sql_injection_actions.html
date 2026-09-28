@@ -1,0 +1,17 @@
+{% if entry.is_sql_injection and entry.is_blocked and entry.sql_can_relax %}
+    <div class="bo-action-row">
+        <button type="button" class="btn-bo-action btn-sql-relax"
+                data-profile="{{ entry.profile }}"
+                data-kind="{{ entry.sql_kind }}"
+                data-field="{{ entry.sql_field }}"
+                data-location="{{ entry.sql_location }}"
+                data-url-pattern="{{ entry.sql_url_pattern }}"
+                data-flagged="{{ entry.sql_flagged }}"
+                data-tokens='{{ entry.sql_tokens|tojson }}'
+                data-scope-note="{{ entry.sql_scope_note }}"
+                onclick="handleSqlInjectionRelax(this)">
+            {{ entry.sql_button_label }}
+        </button>
+        <div class="bo-note">{{ entry.sql_scope_note }}</div>
+    </div>
+{% endif %}

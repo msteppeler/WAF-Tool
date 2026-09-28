@@ -1,0 +1,39 @@
+<nav class="sidebar">
+    <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 3L35 9V19C35 28.5 28.8 34.8 20 37.5C11.2 34.8 5 28.5 5 19V9L20 3Z" fill="#16212C" stroke="#2E8EDB" stroke-width="1.6"/>
+            <path d="M13 19.5L18 24.5L27 14.5" stroke="#2E8EDB" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div>
+            <div class="brand-name">WAF Monitor</div>
+            <div class="brand-sub">{{ t('sidebar.tagline') }}</div>
+        </div>
+    </div>
+
+    <div class="nav-label">{{ t('sidebar.navigation') }}</div>
+    <ul class="nav-list">
+        <li class="nav-group">
+            <a href="{{ url_for('dashboard') }}#top" class="nav-main {% if active_page == 'dashboard' %}active{% endif %}">{{ t('sidebar.dashboard') }}</a>
+            <ul class="nav-sublist">
+                <li><a href="{{ url_for('dashboard') }}#section-policies"><span>{{ t('sidebar.policies') }}</span>{% if policy_count is defined %}<span class="count">{{ policy_count }}</span>{% endif %}</a></li>
+                <li><a href="{{ url_for('dashboard') }}#section-default-profiles"><span>{{ t('sidebar.default_profiles') }}</span>{% if default_profile_count is defined %}<span class="count">{{ default_profile_count }}</span>{% endif %}</a></li>
+                <li><a href="{{ url_for('dashboard') }}#section-custom-profiles"><span>{{ t('sidebar.custom_profiles') }}</span>{% if custom_profile_count is defined %}<span class="count">{{ custom_profile_count }}</span>{% endif %}</a></li>
+            </ul>
+        </li>
+        <li class="nav-group">
+            <a href="{{ url_for('analysis') }}" class="nav-main {% if active_page == 'analysis' %}active{% endif %}">{{ t('sidebar.logging') }}</a>
+        </li>
+        <li class="nav-group">
+            <a href="{{ url_for('objects') }}" class="nav-main {% if active_page == 'objects' %}active{% endif %}">{{ t('sidebar.configuration') }}</a>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer">
+        <div class="conn-status">
+            <span class="conn-dot"></span>
+            <span>{{ nsip }}</span>
+        </div>
+        <div class="conn-user">{{ t('sidebar.logged_in_as') }} <strong>{{ username }}</strong></div>
+        <a href="{{ url_for('logout') }}" class="logout-link">{{ t('sidebar.logout') }}</a>
+    </div>
+</nav>

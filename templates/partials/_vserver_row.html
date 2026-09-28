@@ -1,0 +1,56 @@
+<div class="vserver-row {% if vserver.state == 'UP' %}enabled{% elif vserver.state %}disabled{% endif %}" id="vserver-{{ vserver.name }}"
+     data-vserver-name="{{ vserver.name }}" data-vserver-type="{{ vserver.type }}">
+    <div class="vserver-summary" onclick="toggleDetails('vserver-{{ vserver.name }}')">
+        <span class="status-dot {% if vserver.state == 'UP' %}enabled{% elif vserver.state %}disabled{% endif %}"
+              title="{{ vserver.state or 'Status unbekannt' }}"></span>
+        <span class="vserver-name">{{ vserver.name }}</span>
+        <span class="vserver-type-badge vserver-type-{{ vserver.type }}">{{ 'LB' if vserver.type == 'lb' else 'CS' }}</span>
+        <span class="vserver-address">
+            {% if vserver.ip %}{{ vserver.ip }}{% if vserver.port %}:{{ vserver.port }}{% endif %}{% endif %}
+            {% if vserver.servicetype %}<span class="vserver-servicetype">{{ vserver.servicetype }}</span>{% endif %}
+        </span>
+        <span class="vserver-policy-count">
+            {% if vserver.policy_count %}{{ vserver.policy_count }} Policy{% else %}<span class="none">keine Policy</span>{% endif %}
+        </span>
+    </div>
+
+    <div class="vserver-details" id="details-vserver-{{ vserver.name }}">
+        <div class="detail-row">
+            <span class="k">Backend</span>
+            <span>
+                {% if vserver.backends %}
+                    {% for b in vserver.backends %}
+                        <span class="chip" title="{{ b.summary }}">{{ b.name }}</span>
+                    {% endfor %}
+                {% else %}
+                    <span style="color:var(--text-secondary); font-size:13px;">kein Backend gebunden</span>
+                {% endif %}
+            </span>
+        </div>
+
+        {% if vserver.policies %}
+            <div class="vserver-policies">
+                {% for p in vserver.policies %}
+                    <div class="vserver-policy-item">
+                        <span class="vp-priority" title="Priorität">{{ p.priority if p.priority is not none else '–' }}</span>
+                        <span class="vp-name">{{ p.name }}</span>
+                        <span class="vp-profile">
+                            {% if p.profile %}
+                                {% if p.profile_exists %}
+                                    <a href="{{ url_for('dashboard') }}?jump_profile={{ p.profile }}" class="v profile-link">{{ p.profile }}</a>
+                                {% else %}
+                                    <span class="v" style="color:var(--danger);">{{ p.profile }} (nicht gefunden)</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="v" style="color:var(--text-secondary);">–</span>
+                            {% endif %}
+                        </span>
+                        {% if p.rule %}<code class="vp-rule">{{ p.rule }}</code>{% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-msg">Keine AppFW-Policy an diesen VServer gebunden.</p>
+        {% endif %}
+    </div>
+</div>
