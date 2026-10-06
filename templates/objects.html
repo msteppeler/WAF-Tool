@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}{{ t('configuration.title_tag') }}{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analysis.css') }}"><!-- fuer den wiederverwendeten Dialog-Stil (sql-dialog-*) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/objects.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "partials/_sidebar.html" %}
+
+<main class="main" id="top">
+    <h1 class="page-title">{{ t('sidebar.configuration') }}</h1>
+    <p class="objects-intro">
+        {{ t('configuration.intro') }}
+    </p>
+
+    {% include "partials/_flashes.html" %}
+
+    <div class="section" id="section-signature-categories">
+        <div class="section-header" onclick="toggleSection('signature-categories')">
+            <h2>{{ t('configuration.section_signature_categories') }}</h2>
+            <span class="section-toggle" id="toggle-signature-categories">▾</span>
+        </div>
+        <div class="section-content open" id="content-signature-categories">
+            <div class="section-body">
+                <p class="objects-intro" style="margin-top:0;">
+                    {{ t('configuration.categories_intro', build_link=t('configuration.build_link')) }}
+                </p>
+                <div class="rules-db-bar" id="rules-db-bar" data-loaded-version="{{ signature_rules_meta.file_version if signature_rules_meta else '' }}">
+                    <span class="rules-db-status" id="rules-db-status">
+                        {% if signature_rules_meta %}
+                            {{ t('configuration.rules_db_loaded', rule_count=signature_rules_meta.rule_count, schema=signature_rules_meta.schema_version, version=signature_rules_meta.file_version) }}
+                        {% else %}
+                            {{ t('configuration.rules_db_not_loaded') }}
+                        {% endif %}
+                    </span>
+                    <span class="rules-db-freshness" id="rules-db-freshness"></span>
+                    <button type="button" class="toolbar-btn" onclick="refreshSignatureRuleDatabase()">{{ t('configuration.rules_db_update_button') }}</button>
+                </div>
+                <div class="profile-card-grid" id="category-card-grid">
+                    {% for cat in signature_categories %}
+                        <div class="profile-card category-card" draggable="true" data-category-id="{{ cat.id }}" data-category-name="{{ cat.name }}" data-cves='{{ cat.cves|tojson }}'>
+                            <span class="profile-card-name">{{ cat.name }}</span>
+                            <span class="profile-card-comment">{{ t('configuration.category_cve_count', count=cat.cve_count, terms=cat.search_terms|join(', ')) }}</span>
+                            <span class="profile-card-comment">{{ t('configuration.category_rule_match', matched=cat.matched_rule_count, total=cat.cve_count) }}</span>
+                            <button type="button" class="category-details-link" onclick="event.stopPropagation(); openCategoryDetailsDialog(this.closest('.category-card'))">{{ t('configuration.details_link') }}</button>
+                            <button type="button" class="category-build-link" onclick="event.stopPropagation(); confirmBuildCategory(this.closest('.category-card'))">{{ t('configuration.build_link') }}</button>
+                            <button type="button" class="category-delete-link" onclick="event.stopPropagation(); confirmDeleteCategory(this.closest('.category-card'))">{{ t('configuration.delete_link') }}</button>
+                        </div>
+                    {% endfor %}
+                    <button type="button" class="profile-card profile-card-add" onclick="openCreateCategoryDialog()">
+                        <span class="profile-card-add-icon">+</span>
+                        <span class="profile-card-add-label">Add</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="section-signatures">
+        <div class="section-header" onclick="toggleSection('signatures')">
+            <h2>{{ t('configuration.section_signatures') }}</h2>
+            <span class="section-toggle" id="toggle-signatures">▾</span>
+        </div>
+        <div class="section-content open" id="content-signatures">
+            <div class="section-body">
+                <p class="objects-intro" style="margin-top:0;">{{ t('configuration.signatures_intro') }}</p>
+                <div class="profile-card-grid" id="signature-card-grid">
+                    {% for sig in signatures %}
+                        <div class="profile-card signature-card" draggable="true" data-signature-name="{{ sig.name }}" data-details='{{ sig|tojson }}'>
+                            <span class="profile-card-name">{{ sig.name }}</span>
+                            {% if sig.url %}<span class="profile-card-comment">{{ sig.url }}</span>{% endif %}
+                            <button type="button" class="category-details-link" onclick="event.stopPropagation(); openSignatureDetailsDialog(this.closest('.signature-card'))">{{ t('configuration.details_link') }}</button>
+                            <button type="button" class="category-delete-link" onclick="event.stopPropagation(); confirmDeleteSignature(this.closest('.signature-card'))">{{ t('configuration.delete_link') }}</button>
+                        </div>
+                    {% else %}
+                        <p class="empty-msg">{{ t('configuration.no_custom_signatures') }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="section-waf-profiles">
+        <div class="section-header" onclick="toggleSection('waf-profiles')">
+            <h2>{{ t('configuration.section_waf_profiles') }}</h2>
+            <span class="section-toggle" id="toggle-waf-profiles">▾</span>
+        </div>
+        <div class="section-content open" id="content-waf-profiles">
+            <div class="section-body">
+                <p class="objects-intro" style="margin-top:0;">{{ t('configuration.waf_profiles_intro') }}</p>
+                {% if profiles %}
+                    <div class="profile-card-grid">
+                        {% for profile in profiles %}
+                            <div class="profile-card" draggable="true" data-profile-name="{{ profile.name }}">
+                                <span class="profile-card-name">{{ profile.name }}</span>
+                                {% if profile.signatures %}<span class="profile-card-comment">{{ t('configuration.profile_signature_label', name=profile.signatures) }}</span>{% endif %}
+                                {% if profile._pending_categories %}<span class="profile-card-comment">{{ t('configuration.profile_pending_label', names=profile._pending_categories|join(', ')) }}</span>{% endif %}
+                                {% if profile.comment %}<span class="profile-card-comment">{{ profile.comment }}</span>{% endif %}
+                            </div>
+                        {% endfor %}
+                        <button type="button" class="profile-card profile-card-add" onclick="openCreateProfileDialog()">
+                            <span class="profile-card-add-icon">+</span>
+                            <span class="profile-card-add-label">Add</span>
+                        </button>
+                    </div>
+                {% else %}
+                    <div class="profile-card-grid">
+                        <button type="button" class="profile-card profile-card-add" onclick="openCreateProfileDialog()">
+                            <span class="profile-card-add-icon">+</span>
+                            <span class="profile-card-add-label">Add</span>
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="section-vservers">
+        <div class="section-header" onclick="toggleSection('vservers')">
+            <h2>{{ t('configuration.section_vservers') }}</h2>
+            <span class="section-toggle" id="toggle-vservers">▾</span>
+        </div>
+        <div class="section-content open" id="content-vservers">
+            <div class="section-body">
+                {% if vservers %}
+                    {% for vserver in vservers %}
+                        {% include "partials/_vserver_row.html" %}
+                    {% endfor %}
+                {% else %}
+                    <p class="empty-msg">{{ t('configuration.no_vservers') }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">{{ t('footer.nitro_api') }} · {{ nsip }}</div>
+</main>
+<script type="application/json" id="signature-objects-data">{{ signature_objects|tojson }}</script>
+<script type="application/json" id="category-presets-data">{{ signature_category_presets|tojson }}</script>
+<script type="application/json" id="configuration-i18n-data">{{ {
+    'loading_signature_file': t('configuration.js_loading_signature_file'),
+    'freshness_never_loaded': t('configuration.js_freshness_never_loaded'),
+    'freshness_current': t('configuration.js_freshness_current'),
+    'freshness_outdated': t('configuration.js_freshness_outdated'),
+}|tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/objects.js') }}"></script>
+{% endblock %}

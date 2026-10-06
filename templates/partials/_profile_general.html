@@ -1,0 +1,17 @@
+<div class="profile-subheading" onclick="toggleDetails('general-{{ profile.name }}')">
+    <span>{{ t('profile.general_settings') }}</span>
+    <span class="section-toggle closed" id="arrow-general-{{ profile.name }}">▾</span>
+</div>
+<div class="general-settings" id="details-general-{{ profile.name }}">
+    {% for group in profile._general %}
+        <div class="general-group">
+            <div class="general-group-title">{{ group.name }}</div>
+            {% for field in group.fields %}
+                <div class="detail-row">
+                    <span class="k">{{ field.label }}</span>
+                    {% with value = field.value %}{% include "partials/_field_value.html" %}{% endwith %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>

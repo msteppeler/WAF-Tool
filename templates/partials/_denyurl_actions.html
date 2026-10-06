@@ -1,0 +1,16 @@
+{% if entry.is_policy_hit and not entry.is_blocked and entry.profile and entry.deny_url_pattern %}
+    <div class="bo-action-row">
+        <button type="button" class="btn-bo-action btn-deny-url"
+                data-profile="{{ entry.profile }}"
+                data-url="{{ entry.request_url }}"
+                data-base-url="{{ entry.deny_url_base }}"
+                data-pattern="{{ entry.deny_url_pattern }}"
+                data-pattern-exact="{{ entry.deny_url_pattern_exact }}"
+                data-pattern-path="{{ entry.deny_url_pattern_path }}"
+                data-path="{{ entry.deny_url_path }}"
+                onclick="handleDenyUrlAdd(this)">
+            Deny-URL-Regel erstellen ({{ entry.deny_url_base }})
+        </button>
+        <div class="bo-note">Weist künftige Zugriffe auf diese URL ab (Deny URL hat Vorrang vor Start URL). Das Muster lässt sich im Dialog anpassen; standardmäßig trifft es den Pfad unabhängig von Host-Angabe und Query-String.</div>
+    </div>
+{% endif %}
