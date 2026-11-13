@@ -106,10 +106,30 @@ The continuously updated view of `ns.log`.
 Object-oriented management, all via drag and drop:
 
 - **Signature categories**: use "+ Add" to create a category (e.g. IIS, Apache, OWA,
-  SharePoint, WordPress, or a custom one) - this searches the NVD for matching CVEs.
-  "Update rule database" downloads the public Citrix signature file once, so the tool
-  knows which CVE maps to which NetScaler-internal rule ID. "Create in NetScaler" builds a
-  real signature object from it on your appliance.
+  SharePoint, WordPress, or a custom one). It collects CVEs from the NVD (the first 15 hits per
+  search term) and additionally every CVE whose Citrix or Snort rule text mentions the search
+  term, so the category also contains the CVEs the loaded rule sets actually cover (shown with a
+  "Regeltext: <term>" badge in the details view).
+  - "Update rule database" downloads the public Citrix signature file (which CVE belongs to
+    which NetScaler rule ID) and, in the same step, four files of the free ET Open
+    Snort/Suricata ruleset (web_specific_apps, web_server, exploit, current_events), used only
+    to fill gaps the Citrix file does not cover.
+  - "Create in NetScaler" builds a real signature object from the matching Citrix rules. For
+    CVEs without a Citrix rule but with a simple enough Snort rule, the tool translates that
+    rule into a native rule and adds it to the same object (search patterns in the URL, method,
+    header, cookie or POST body, including startswith/endswith/depth/offset/distance/within,
+    written as an extra regex pattern the way Citrix does it; not translated: pcre, threshold,
+    bsize/urilen). Those rules block and log like Citrix's own - they come from a third-party
+    ruleset and are not checked against your traffic, so watch the Logging page for false
+    positives (a rule can be switched to log-only in the NetScaler GUI).
+  - NetScaler validates the imported file against a schema and rejects all of it if one value
+    does not fit. If that happens, the tool shows the reason from ns.log and repeats the import
+    with the Citrix rules only, saying that the translated rules were left out.
+  - The messages are kept short. The details (per-file counts, how many rules are translatable
+    and why the rest is not, which CVEs got which kind of coverage) go to the server log
+    (`docker logs`). Inside the container, `python3 find_gap_examples.py --reasons` (why Snort
+    rules are not translated), `--category <name>` (per CVE of a category) and `--term <keyword>`
+    (every Citrix/Snort rule mentioning a keyword) answer the same questions on demand.
 - **Signatures**: the (custom) signature objects that actually exist on the NetScaler.
   Dragging one onto a profile assigns that signature to the profile.
 - **WAF profiles**: your own profiles. "+ Add" creates a new one. Dragging one onto a
