@@ -1,5 +1,0 @@
-{% if value is string or value is number or value is sameas true or value is sameas false %}
-    <span class="v">{{ value }}</span>
-{% else %}
-    <span class="v">{{ value|tojson }}</span>
-{% endif %}
