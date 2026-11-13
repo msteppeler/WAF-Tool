@@ -1,0 +1,13 @@
+{% if log_error %}
+    <div class="log-error">{{ log_error }}</div>
+{% elif entries %}
+    <div class="log-list">
+        {% for entry in entries %}
+            {% with entry_id = loop.index0 %}
+                {% include "partials/_log_entry.html" %}
+            {% endwith %}
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="log-empty">{{ t('logging.no_entries', filename=log_filename) }}</div>
+{% endif %}

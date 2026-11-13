@@ -1,0 +1,67 @@
+<div class="profile-subheading" onclick="toggleDetails('checks-{{ profile.name }}')">
+    <span>{{ t('profile.security_checks') }}</span>
+    <span class="section-toggle closed" id="arrow-checks-{{ profile.name }}">▾</span>
+</div>
+<div class="checks-list" id="details-checks-{{ profile.name }}">
+    {% for check in profile._checks %}
+        <div class="check-row" id="check-row-{{ profile.name }}-{{ check.key }}"
+             data-profile="{{ profile.name }}" data-check-key="{{ check.key }}">
+            <div class="check-summary {% if not check.details %}no-details{% endif %}"
+                 {% if check.details %}onclick="toggleDetails('check-{{ profile.name }}-{{ check.key }}')"{% endif %}>
+                <span class="check-name {% if not check.active %}inactive{% endif %}">{{ check.label }}</span>
+                <span class="check-boxes" onclick="event.stopPropagation()">
+                    {% if check.supports_learn %}
+                    <label><input type="checkbox" class="check-action-box" data-token="learn" {% if check.learn %}checked{% endif %}> Learning</label>
+                    {% endif %}
+                    <label><input type="checkbox" class="check-action-box" data-token="block" {% if check.block %}checked{% endif %}> Block</label>
+                    <label><input type="checkbox" class="check-action-box" data-token="stats" {% if check.stat %}checked{% endif %}> Stat</label>
+                    <label><input type="checkbox" class="check-action-box" data-token="log" {% if check.log %}checked{% endif %}> Log</label>
+                </span>
+            </div>
+            <div class="check-action-row" hidden>
+                <button type="button" class="check-action-save" onclick="saveCheckAction(this)">{{ t('check.save') }}</button>
+                <button type="button" class="check-action-cancel" onclick="cancelCheckAction(this)">{{ t('check.discard') }}</button>
+                <span class="check-action-message"></span>
+            </div>
+            {% if check.details %}
+                <div class="check-details" id="details-check-{{ profile.name }}-{{ check.key }}"
+                     data-profile="{{ profile.name }}" data-check-key="{{ check.key }}">
+                    {% for key, entry in check.details.items()|sort %}
+                        <div class="detail-row">
+                            <span class="k" title="{{ key }}">{{ entry.label }}</span>
+                            {% if entry.input == 'select' %}
+                                <select class="detail-field-input" data-field="{{ key }}" data-original="{{ entry.value }}">
+                                    {% for opt_value, opt_label in entry.options %}
+                                        <option value="{{ opt_value }}" {% if opt_value == entry.value %}selected{% endif %}>{{ opt_label }}</option>
+                                    {% endfor %}
+                                </select>
+                            {% elif entry.input == 'text' %}
+                                <input type="text" class="detail-field-input" data-field="{{ key }}"
+                                       data-original="{{ entry.value }}" value="{{ entry.value }}" autocomplete="off">
+                            {% elif entry.input == 'checkbox-list' %}
+                                <span class="detail-field-checkbox-list" data-field="{{ key }}"
+                                      data-original='{{ entry.value|tojson }}'>
+                                    {% for opt_value, opt_label in entry.options %}
+                                        <label class="detail-checkbox-option">
+                                            <input type="checkbox" class="detail-field-input" data-field="{{ key }}"
+                                                   value="{{ opt_value }}" {% if opt_value in entry.value %}checked{% endif %}>
+                                            {{ opt_label }}
+                                        </label>
+                                    {% endfor %}
+                                </span>
+                            {% else %}
+                                {% set value = entry.value %}
+                                {% include "partials/_field_value.html" %}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <div class="check-detail-action-row" hidden>
+                        <button type="button" class="check-action-save" onclick="saveCheckDetails(this)">{{ t('check.save') }}</button>
+                        <button type="button" class="check-action-cancel" onclick="cancelCheckDetails(this)">{{ t('check.discard') }}</button>
+                        <span class="check-action-message"></span>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>

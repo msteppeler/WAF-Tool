@@ -1,0 +1,51 @@
+<div class="log-entry {{ entry.severity_class }}"
+     data-entry-id="{{ entry_id }}"
+     data-action="{{ entry.action|lower }}"
+     data-search="{{ entry.raw_line|lower }}">
+    <div class="log-entry-summary" onclick="toggleDetails('log-{{ entry_id }}')">
+        <span class="log-time">{{ entry.timestamp }}</span>
+        <span class="log-check-name">{{ entry.label }}</span>
+        <span class="log-src">{{ entry.src }} → {{ entry.request_url }}</span>
+        <span class="log-method">{{ entry.method }}</span>
+        {% if entry.profile %}
+            <a href="{{ url_for('dashboard') }}?jump_profile={{ entry.profile|urlencode }}#profile-{{ entry.profile }}"
+               class="log-profile profile-link" onclick="event.stopPropagation();">{{ entry.profile }}</a>
+        {% else %}
+            <span class="log-profile">–</span>
+        {% endif %}
+        <span class="log-action {{ entry.action_class }}">{{ entry.action|default('–', true) }}</span>
+    </div>
+    <div class="log-entry-details" id="details-log-{{ entry_id }}">
+        <div class="detail-row">
+            <span class="k">{{ t('logging.detail_message') }}</span>
+            <span class="v">{{ entry.message }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="k">{{ t('logging.detail_request_url') }}</span>
+            <span class="v">{{ entry.request_url }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="k">{{ t('logging.detail_severity') }}</span>
+            <span class="v">{{ entry.severity_label }} (CEF {{ entry.cef_severity }})</span>
+        </div>
+        {% for field in entry.details %}
+            <div class="detail-row">
+                <span class="k">{{ field.label }}</span>
+                {% if field.key == 'cs3' %}
+                    <a href="#" class="v profile-link transaction-link"
+                       data-filter-value="{{ field.value }}"
+                       onclick="event.preventDefault(); filterByValue(this.dataset.filterValue);">{{ field.value }}</a>
+                {% else %}
+                    <span class="v">{{ field.value }}</span>
+                {% endif %}
+            </div>
+        {% endfor %}
+        {% include "partials/_buffer_overflow_actions.html" %}
+        {% include "partials/_starturl_actions.html" %}
+        {% include "partials/_sql_injection_actions.html" %}
+        {% include "partials/_cmd_injection_actions.html" %}
+        {% include "partials/_cookie_consistency_actions.html" %}
+        {% include "partials/_csrf_tag_actions.html" %}
+        {% include "partials/_denyurl_actions.html" %}
+    </div>
+</div>

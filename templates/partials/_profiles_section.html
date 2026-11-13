@@ -1,0 +1,25 @@
+{#
+    Wiederverwendbare Profil-Sektion.
+    Erwartete Variablen (per {% with %} setzen):
+      section_id : z.B. "default-profiles"
+      heading    : Überschrift der Sektion
+      profiles   : Liste der angereicherten Profile
+      empty_text : Text, falls keine Profile vorhanden
+#}
+<div class="section" id="section-{{ section_id }}">
+    <div class="section-header" onclick="toggleSection('{{ section_id }}')">
+        <h2>{{ heading }}</h2>
+        <span class="section-toggle" id="toggle-{{ section_id }}">▾</span>
+    </div>
+    <div class="section-content" id="content-{{ section_id }}">
+        <div class="section-body">
+            {% if profiles %}
+                {% for profile in profiles %}
+                    {% include "partials/_profile_row.html" %}
+                {% endfor %}
+            {% else %}
+                <p class="empty-msg">{{ empty_text }}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
